@@ -7,9 +7,7 @@ import dev.rohin.userservice.model.User;
 import dev.rohin.userservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class  RegistrationController {
@@ -20,17 +18,32 @@ public class  RegistrationController {
     @PostMapping("/user/register")
     public ResponseDto<UserResponseDto> registerUser(@RequestBody UserDto userDto) {
 
-        User user= userService.registerUser(userDto);
+        User registeredUser= userService.registerUser(userDto);
 
         return new ResponseDto<>(
                 HttpStatus.OK,
                 new UserResponseDto(
-                        user.getId(),
-                        user.getFullName(),
-                        user.getEmail(),
-                        user.isActive()
+                        registeredUser.getId(),
+                        registeredUser.getFullName(),
+                        registeredUser.getEmail(),
+                        registeredUser.isActive()
                 )
         );
 
+    }
+
+    @GetMapping("/user/confirm")
+    public ResponseDto<UserResponseDto> validateUser(@RequestParam String token){
+        User verifiedUser = userService.validateUser(token);
+
+        return new ResponseDto<>(
+                HttpStatus.OK,
+                new UserResponseDto(
+                        verifiedUser.getId(),
+                        verifiedUser.getFullName(),
+                        verifiedUser.getEmail(),
+                        verifiedUser.isActive()
+                )
+        );
     }
 }
