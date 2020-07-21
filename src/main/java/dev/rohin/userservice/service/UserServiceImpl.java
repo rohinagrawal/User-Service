@@ -1,9 +1,14 @@
 package dev.rohin.userservice.service;
 
+import dev.rohin.userservice.dto.ForgotPasswordDto;
+import dev.rohin.userservice.dto.ResetPasswordDto;
 import dev.rohin.userservice.dto.UserDto;
+import dev.rohin.userservice.event.ForgotPasswordEvent;
 import dev.rohin.userservice.event.SuccessfulRegistrationEvent;
+import dev.rohin.userservice.model.ResetPasswordToken;
 import dev.rohin.userservice.model.User;
 import dev.rohin.userservice.model.VerificationToken;
+import dev.rohin.userservice.repository.ResetPasswordTokenRepository;
 import dev.rohin.userservice.repository.UserRepository;
 import dev.rohin.userservice.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +34,15 @@ public class UserServiceImpl implements UserService {
     @Autowired
     VerificationTokenRepository verificationTokenRepository;
 
+    @Autowired
+    ResetPasswordTokenRepository resetPasswordTokenRepository;
+
     //@Autowired
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
 
     @Override
     public User registerUser(UserDto userDto) {
-        if (userRepository.findByEmail(userDto.getEmail()) != null){
+        if (userRepository.findAllByEmail(userDto.getEmail()) != null){
             // TODO: Throw Exception
         }
 
@@ -69,6 +77,39 @@ public class UserServiceImpl implements UserService {
             verificationTokenRepository.delete(verificationToken.get());
 
             return verifiedUser;
+        }
+        else{
+            return null;
+        }
+    }
+
+    @Override
+    public User forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+
+        User forgotPasswordUser = userRepository.findByEmail(forgotPasswordDto.getEmail());
+
+        applicationEventPublisher.publishEvent(new ForgotPasswordEvent(forgotPasswordUser));
+
+        return forgotPasswordUser;
+    }
+
+    @Override
+    public User resetPassword(String token, ResetPasswordDto resetPasswordDto) {
+
+        Optional<ResetPasswordToken> resetPasswordToken = resetPasswordTokenRepository.findByToken(token);
+
+        if(resetPasswordToken.isEmpty())
+            return null;
+        if(resetPasswordToken.get().getExpiryTime().getTime() - new Date().getTime() > 0 ){
+
+            User resetPasswordUser = resetPasswordToken.get().getUser();
+            resetPasswordUser.setPassword(resetPasswordDto.getPassword());
+
+            userRepository.save(resetPasswordUser);
+
+            resetPasswordTokenRepository.delete(resetPasswordToken.get());
+
+            return resetPasswordUser;
         }
         else{
             return null;
