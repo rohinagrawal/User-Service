@@ -20,7 +20,7 @@ public class ForgotPasswordController {
     @Autowired
     UserService userService;
 
-    @PostMapping("/user/forgotpassword/")
+    @PostMapping("/user/forgotpassword")
     public ResponseDto<ForgotPasswordResponseDto> forgotPassword (@RequestBody ForgotPasswordDto forgotPasswordDto){
 
         User forgotPasswordUser = userService.forgotPassword(forgotPasswordDto);
@@ -33,7 +33,7 @@ public class ForgotPasswordController {
         );
     }
 
-    @PostMapping("/user/resetpassword/")
+    @PostMapping("/user/resetpassword")
     public ResponseDto<ResetPasswordResponseDto> resetPassword (@RequestParam String token, @RequestBody ResetPasswordDto resetPasswordDto){
 
         User resetPasswordUser = userService.resetPassword(token,resetPasswordDto);

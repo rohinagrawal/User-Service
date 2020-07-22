@@ -88,6 +88,10 @@ public class UserServiceImpl implements UserService {
 
         User forgotPasswordUser = userRepository.findByEmail(forgotPasswordDto.getEmail());
 
+        forgotPasswordUser.setActive(false);
+
+        userRepository.save(forgotPasswordUser);
+
         applicationEventPublisher.publishEvent(new ForgotPasswordEvent(forgotPasswordUser));
 
         return forgotPasswordUser;
@@ -103,7 +107,10 @@ public class UserServiceImpl implements UserService {
         if(resetPasswordToken.get().getExpiryTime().getTime() - new Date().getTime() > 0 ){
 
             User resetPasswordUser = resetPasswordToken.get().getUser();
-            resetPasswordUser.setPassword(resetPasswordDto.getPassword());
+
+            resetPasswordUser.setPassword(passwordEncoder.encode(resetPasswordDto.getPassword()));
+
+            resetPasswordUser.setActive(true);
 
             userRepository.save(resetPasswordUser);
 
